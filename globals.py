@@ -54,17 +54,3 @@ def get_trip_id(spider_id, c_time):
         return 1
     return int(x)
 
-#
-# def allocate_remaining(c_time):
-#     df = mDB.prey_signal_generated_record[(pd.to_datetime(mDB.prey_signal_generated_record['Signal-Time']).dt.date ==
-#                                            c_time.date()) & (~mDB.prey_signal_generated_record['Spider_allocated'])]
-#
-#     if df.shape[0] > 0:
-#         for i, row in df.iterrows():
-#             prey_id = row[0]
-#             signal_time = row[1]
-#             if prey_id in prey_already_sent_signal:
-#                 if (signal_time > (c_time - dt.timedelta(minutes=12))) & (signal_time <= c_time):
-#                     Sa.emergency(prey_id, signal_time, c_time)
-#                 else:
-#                     prey_already_sent_signal.remove(prey_id)
