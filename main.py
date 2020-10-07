@@ -42,7 +42,7 @@ def clock(count, rand_num):
             prey_id = prey_vibration_generator()
             if prey_id not in gb.prey_already_sent_signal:  # make it more random
                 if prey_id is not None:
-                    print(current_time.date(), ';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
+                    
                     df = pd.DataFrame({'Prey-Id': prey_id, 'Signal-Time': current_time, 'Spider_allocated': False},
                                       index=[0])
                     mDB.prey_signal_generated_record = mDB.prey_signal_generated_record.append(df, ignore_index=True,
