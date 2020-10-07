@@ -1,8 +1,12 @@
-import RoutingAndScheduling as RaS
-import datetime as dt
 import globals as gb
+
+import datetime as dt
 import pandas as pd
 import math
+
+
+silk_edge_list = pd.read_csv('edges.csv', index_col=0)
+silk_node_list = pd.read_csv('nodes.csv', index_col=0)
 
 spider_daily_record_table = pd.DataFrame(columns=['Spider-Id', 'Date', 'Init X', 'Init Y', 'Departure Time', 'Distance',
                                                   'Working Time'])  # working time in minutes
@@ -13,11 +17,21 @@ spider_prey_relation_table = pd.DataFrame(columns=['Prey-Id', 'SA Date-Time', 'S
 emergency_table = pd.DataFrame(columns=['Prey-Id', 'Date-Time', 'Signal-Time', 'Max-Radius', 'Spider-Id'])
 prey_signal_generated_record = pd.DataFrame(columns=['Prey-Id', 'Signal-Time', 'Spider_allocated'])
 
+
+# prey_status = pd.DataFrame(np.nan, index=range(RaS.silk_node_list.shape[0]), columns=['Prey-Id', 'Signal-Time',
+#                                                                                       'Priority',
+#                                                                                       'Spider-Allocated',
+#                                                                                       'Last-Collection-Time'])
+
+high_population_density_area_prey_fill_up_time = dt.timedelta(days=0, hours=2)
+medium_population_density_area_prey_fill_up_time = dt.timedelta(days=0, hours=3)
+low_population_density_area_prey_fill_up_time = dt.timedelta(days=0, hours=5)
+
 # database queries
 
 
 def a_prey_priority(prey_id):
-    return int(RaS.silk_node_list.where(RaS.silk_node_list['Prey-Id'] == prey_id).dropna()['Priority'])
+    return int(silk_node_list.where(silk_node_list['Prey-Id'] == prey_id).dropna()['Priority'])
 
 
 def a_spider_location_id(spider_id):
@@ -26,11 +40,11 @@ def a_spider_location_id(spider_id):
 
 
 def a_spider_location_id_based_on_coordinates(s_x, s_y):
-    return RaS.silk_node_list['Prey-Id'][(RaS.silk_node_list['X'] == s_x) & (RaS.silk_node_list['Y'] == s_y)].values[0]
+    return silk_node_list['Prey-Id'][(silk_node_list['X'] == s_x) & (silk_node_list['Y'] == s_y)].values[0]
 
 
 def a_spider_coordinates_based_on_location_id(spider_location_id):
-    s_x, s_y = RaS.silk_node_list[['X', 'Y']][RaS.silk_node_list['Prey-Id'] == spider_location_id].values[0]
+    s_x, s_y = silk_node_list[['X', 'Y']][silk_node_list['Prey-Id'] == spider_location_id].values[0]
     return s_x, s_y
 
 
@@ -60,7 +74,7 @@ def attack_on_prey_order(spider_id, c_time):  # working
                                                   (pd.to_datetime(spider_prey_relation_table['Signal Time']) >=
                                                    pd.to_datetime(spider_waiting_from))]
     if preys_for_spider.shape[0] > 0:
-        df = pd.merge(preys_for_spider, RaS.silk_node_list, how='left', left_on='Prey-Id', right_on='Prey-Id')
+        df = pd.merge(preys_for_spider, silk_node_list, how='left', left_on='Prey-Id', right_on='Prey-Id')
         df.sort_values(['Signal Time', 'Priority', 'Distance From Spider'], inplace=True)
         return df['Prey-Id']
     else:
@@ -79,7 +93,8 @@ def spider_daily_record_init(spider_id, c_time):  # register spider per day to t
         if (waiting_time <= c_time) & (available is True):
             spider_today_entry_in_table = spider_daily_record_table[(pd.to_datetime(spider_daily_record_table['Date'])
                                                                      .dt.date == c_time.date()) &
-                                                                    (spider_daily_record_table['Spider-Id'] == spider_id)]
+                                                                    (spider_daily_record_table['Spider-Id'] ==
+                                                                     spider_id)]
             if spider_today_entry_in_table.shape[0] == 0:
                 spider_x, spider_y = new_spiders[['X', 'Y']].loc[new_spiders['Spider-Id'] == spider_id].values[0]
                 df = pd.DataFrame([[spider_id, c_time.date(), spider_x, spider_y]],
@@ -109,7 +124,8 @@ def save_spider_prey_relation_table(c_time):
 def save_spider_nodes_visited(c_time):
     global spider_nodes_visited
     yesterday_data = spider_nodes_visited[spider_nodes_visited['Date'] < c_time.date()]
-    spider_nodes_visited = spider_nodes_visited[~pd.to_datetime(spider_nodes_visited['Date']).isin(yesterday_data['Date'].tolist())]
+    spider_nodes_visited = spider_nodes_visited[~pd.to_datetime(
+        spider_nodes_visited['Date']).isin(yesterday_data['Date'].tolist())]
 
     save_to_file(yesterday_data, 'spider_nodes_visited.csv')
 
@@ -124,9 +140,10 @@ def save_emergency_table(c_time):
 
 def total_distance_travelled(spider_id, c_time):
     try:
-        total_distance_t = float(spider_daily_record_table['Distance'][(spider_daily_record_table['Spider-Id'] ==
-                                                                        spider_id) & (pd.to_datetime(spider_daily_record_table['Date']).dt.date
-                                                                                      == c_time.date())].values[0])
+        total_distance_t = float(spider_daily_record_table['Distance'][
+                                     (spider_daily_record_table['Spider-Id'] == spider_id) &
+                                     (pd.to_datetime(spider_daily_record_table['Date']).dt.date ==
+                                      c_time.date())].values[0])
     except IndexError:
         total_distance_t = 0
     if math.isnan(total_distance_t):
@@ -137,10 +154,20 @@ def total_distance_travelled(spider_id, c_time):
 
 def today_working_time(spider_id, c_time):
     working_time_of_today = spider_daily_record_table['Working Time'][
-        (spider_daily_record_table['Spider-Id'] == spider_id) & (spider_daily_record_table['Date'] == c_time.date())].values[0]
+        (spider_daily_record_table['Spider-Id'] == spider_id) &
+        (spider_daily_record_table['Date'] == c_time.date())].values[0]
 
     if not isinstance(working_time_of_today, dt.timedelta):
         working_time_of_today = dt.timedelta(seconds=0)
 
     return working_time_of_today
 
+
+def fill_up_time(prey_id):
+    prey_priority = a_prey_priority(prey_id)
+    if prey_priority == 1:
+        return high_population_density_area_prey_fill_up_time
+    elif prey_priority == 2:
+        return medium_population_density_area_prey_fill_up_time
+    else:
+        return low_population_density_area_prey_fill_up_time

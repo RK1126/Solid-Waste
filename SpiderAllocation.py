@@ -1,10 +1,10 @@
-from sklearn.neighbors import NearestNeighbors
 import RoutingAndScheduling as RaS
 import MyDatabase as mDB
-import datetime as dt
 import globals as gb
+
+from sklearn.neighbors import NearestNeighbors
+import datetime as dt
 import pandas as pd
-import snoop
 
 
 def emergency(prey_id, prey_vibration_generate_at, c_time, max_radius=4000):
@@ -89,7 +89,7 @@ def scheduling_time(prey_id, spider_in_mid_way, spider_id, c_time):  # distance 
 
     return c_time + time
 
-#@snoop
+
 def distance(spider_id, prey_id):
     spider_loc_id = mDB.a_spider_location_id(spider_id)
     if spider_loc_id == prey_id:
@@ -132,13 +132,13 @@ def is_spider_in_mid_way(spider_id, c_time):
         current_scheduling_time = x[0][0]
         return True, current_scheduling_time
 
-#@snoop
+
 def allocate_a_spider(prey_id, prey_vibration_generation_at, spider_id, c_time):
 
     if not spider_in_allocation(prey_id, prey_vibration_generation_at, spider_id, c_time):
         emergency(prey_id, prey_vibration_generation_at, c_time)
 
-#@snoop
+
 def spider_in_allocation(prey_id, prey_vibration_generation_at, spider_id, c_time):
     # check for truck capacity
     spider_ava = gb.waiting_spider_list[(gb.waiting_spider_list['Spider-Id'] == spider_id) &
@@ -235,7 +235,7 @@ def hungry_level_action(spiders_in_distance_range, prey_id, prey_vibration_gener
     else:
         allocate_a_spider(prey_id, prey_vibration_generation_at, a_spider_id, c_time)
 
-#@snoop
+
 def spider_check(prey_id, prey_vibration_generation_at, c_time):
     spiders_in_distance_range = nearer_spider(prey_id)
     if spiders_in_distance_range.shape[0] == 0:  # Allocate new spider

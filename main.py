@@ -1,19 +1,21 @@
 import RoutingAndScheduling as RaS
 import SpiderAllocation as Sa
 import MyDatabase as mDB
-import datetime as dt
 import globals as gb
+
+import datetime as dt
 import pandas as pd
 import numpy as np
 
-prey_id_list = RaS.silk_node_list['Prey-Id'].tolist()
+
+prey_id_list = mDB.silk_node_list['Prey-Id'].tolist()
 
 current_time = dt.datetime(year=2019, month=1, day=1, hour=6, minute=0, second=0, microsecond=0)
 
 
 def prey_vibration_generator():
     num = np.random.randint(0, len(prey_id_list))
-    if prey_id_list[num] != 'dumpyard':
+    if prey_id_list[num] != 'Dumpyard':
         return prey_id_list[num]
     else:
         prey_vibration_generator()
@@ -40,7 +42,7 @@ def clock(count, rand_num):
             prey_id = prey_vibration_generator()
             if prey_id not in gb.prey_already_sent_signal:  # make it more random
                 if prey_id is not None:
-                    print(count, rand_num, prey_id, ';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
+                    print(current_time.date(), ';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
                     df = pd.DataFrame({'Prey-Id': prey_id, 'Signal-Time': current_time, 'Spider_allocated': False},
                                       index=[0])
                     mDB.prey_signal_generated_record = mDB.prey_signal_generated_record.append(df, ignore_index=True,
@@ -65,4 +67,5 @@ def start():
 
 
 if __name__ == "__main__":
+
     start()

@@ -8,14 +8,13 @@ system_init_time = dt.datetime(year=2019, month=1, day=1, hour=6, minute=0, seco
 write_header = True
 
 
-def spiders_list(total_number_of_spiders=3, c_time=system_init_time, init_x=[3164], init_y=[1111]):
-
+def spiders_list(total_number_of_spiders=3, c_time=system_init_time, init_x=(3164,), init_y=(1111,)):
 
     spiders = pd.DataFrame(columns=['Trip No'])
     spiders['Spider-Id'] = list(range(total_number_of_spiders))
     spiders['X'] = init_x  # current location
     spiders['Y'] = init_y
-    spiders['Spider-Location-Id'] = 'dumpyard'
+    spiders['Spider-Location-Id'] = 'Dumpyard'
     spiders['Available'] = True
     spiders['Waiting From Time'] = c_time
     spiders['Scheduling Time'] = system_init_time  # when spider should start scheduling
@@ -25,7 +24,7 @@ def spiders_list(total_number_of_spiders=3, c_time=system_init_time, init_x=[316
     return spiders
 
 
-avg_speed = 660  # (40km/hr or 666m/ minutes)
+avg_speed = 200  # (12km/hr)
 
 prey_size = 0.66  # cubic meter
 
@@ -36,14 +35,12 @@ prey_already_sent_signal = []
 
 
 def update_trip_id(spider_id, c_time):
-    # print('update trip id')
+
     trip_id = get_trip_id(spider_id, c_time)
-    # print(trip_id)
     trip_id = trip_id + 1
     waiting_spider_list.loc[(waiting_spider_list['Spider-Id'] == spider_id) &
                             (pd.to_datetime(waiting_spider_list['Waiting From Time']).dt.date == c_time.date()),
                             ['Trip No']] = trip_id
-
 
 
 def get_trip_id(spider_id, c_time):
@@ -53,4 +50,3 @@ def get_trip_id(spider_id, c_time):
     if np.isnan(x):
         return 1
     return int(x)
-
